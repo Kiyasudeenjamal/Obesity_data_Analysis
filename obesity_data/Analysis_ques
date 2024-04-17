@@ -1,0 +1,24 @@
+-- 1. which age has most number of obesity type3
+-- 2. fetch the data that usage of transportation and give rank for that
+-- 3. which age category consume large number of water
+-- 4. fetch data who are all smoker and their age and obesity level
+-- 5. differenciate the obesity level by high calories intake
+-- 6. fetch the top 10 heightest weight and their detail
+-- 7. count the number of person in each obesity level
+-- 8. which age category intake most number of meals
+-- 9. differenciate the smoker by gender
+-- 10. which gender use most number of tech 
+-- 11. fetch data of obesity level who are all monitor the calories intake in daily basis
+-- 12. fetch data that who has normal weight
+-- 13. percentage the meals intake category by the each obesity level
+-- 14. differenciate the each obisity level by alcohal consume
+-- 15. fetch the obesity level who are all true in food_between_meals and veg intake
+-- 16. fetch data that maximum physical activities hours and family_history will be yes and return their obesity level
+-- 17. percentage the each obesity level by each physical_activites hours
+-- 18. which age category has most number of normal weight
+-- 19. return the alcohal conusmer and their obesity level
+-- 20. which weight has height obesity level by each ahe category
+-- 21. which transportation category has number of less weight
+-- 22. How do high-calorie food intake, vegetable intake per day, and meals per day relate to obesity levels
+-- 23. Do individuals who monitor their calorie intake and engage in physical activities have lower obesity levels?
+-- 24. How does daily water intake relate to obesity levels?
