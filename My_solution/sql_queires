@@ -1,0 +1,197 @@
+-- 1. which age has most number of obesity type3--vs
+select * from clean_1;
+select age,count(obesity_level) as num_obs_3 from clean_1
+where obesity_level='Obesity_Type_III'
+group by age
+order by num_obs_3 desc;
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+-- 2. fetch the data that usage of transportation and give rank for that
+with tab as (
+select Daily_transportation,count(Daily_transportation) as use_count,
+dense_rank() over(order by count(Daily_transportation) desc)  as rk
+from clean_1
+group by daily_transportation)
+select * from tab;
+----------------------------------------------------------------------------------------------------------------------------------------------------
+-- 3. which age category consume large number of water--vs
+select age,count(water_intake) as water_intake_count from clean_1
+where water_intake=(select max(water_intake) from clean_1)
+group by age
+order by water_intake_count desc;
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+-- 4. fetch data who are all smoker and their age and obesity level
+select p_id,age,smoke,obesity_level,
+row_number() over(partition by obesity_level order by age desc) as rk from clean_1
+where smoke='yes';
+------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 5. differenciate the obesity level by high calories intake---vs
+with tab as(
+select High_Calories_food_intake , obesity_level,
+row_number() over(partition by High_Calories_food_intake ) as rk from clean_1),
+tab_1 as(
+select High_Calories_food_intake, obesity_level,count(rk) as each_count
+from tab
+group by High_Calories_food_intake, obesity_level), tab_2 as(
+select obesity_level,
+case when High_Calories_food_intake='YES' then concat(each_count) end as Intake_yes ,
+case when  High_Calories_food_intake='NO' then concat(each_count) end as Intake_no
+from tab_1), tab_3 as
+ (select t.obesity_level,
+    COALESCE(Intake_yes, (select intake_yes from tab_2 where obesity_level=t.obesity_level and intake_yes is not null ) ) AS Intake_yes,
+    COALESCE(Intake_no, (select intake_no from tab_2 where obesity_level=t.obesity_level and intake_no is not null )) AS Intake_no
+ from tab_2 t)
+select distinct* from tab_3;
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 6. fetch the top 10 heightest weight and their obesity detail
+with tab as(
+select Weight,Obesity_level,
+dense_rank() over(order by weight desc) as top_10_weight from clean_1)
+select * from tab
+where top_10_weight<=10;
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 7. count the number of person in each obesity level
+select obesity_level,count(p_id) as no_of_people
+from clean_1
+group by obesity_level;
+------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 8. which age category intake most number of meals
+select age,Meals_per_day,count(Meals_per_day) as no_of_people
+from clean_1
+where Meals_per_day=(select max(Meals_per_day) from clean_1)
+group by age,Meals_per_day
+order by no_of_people desc;
+------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 9. differenciate the smoker by gender
+select gender,count(smoke) as no_of_smokers from clean_1
+where smoke='yes'
+group by gender;
+----------------------------------------------------------------------------------------------------------------------------------------------
+-- 10. which gender use most number of tech 
+select gender,
+round(sum(Tech_usage_time),2) as tech_usage_tym from clean_1
+group by gender;
+--------------------------------------------------------------------------------------------------------------------------------------------------
+-- 11. fetch data of obesity level who are all monitor the calories intake in daily basis
+select self_calories_moniter,
+obesity_level,count(self_calories_moniter) as no_of_people
+from clean_1
+where self_calories_moniter='yes'
+group by self_calories_moniter,obesity_level
+order by obesity_level;
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+-- 12. fetch Vegetables_intake_per_day and normal weight
+select obesity_level,Vegetables_intake_per_day
+from clean_1
+where obesity_level='normal_weight';
+------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 13. percentage the meals intake category by the each obesity level
+with tab as(
+select Meals_per_day,obesity_level,
+count(obesity_level) as no_of_people from clean_1
+group by meals_per_day,obesity_level
+order by meals_per_day)
+select *,
+round((no_of_people/(select sum(no_of_people) from tab)*100 )) as percentage from tab;
+-------------------------------------------------------------------------------------------------------------------------------------------------
+-- 14. differenciate the each obisity level by alcohal consume
+with tab as(
+select obesity_level,alcohal_consume,count(alcohal_consume) as no_of_people
+from clean_1
+group by obesity_level,alcohal_consume
+order by obesity_level),
+tab_1 as(
+select obesity_level, 
+case when alcohal_consume='no' then no_of_people end as No_alcohal,
+case when alcohal_consume='sometimes' then no_of_people end as sometimes,
+case when alcohal_consume='frequently' then no_of_people end as frequently,
+case when alcohal_consume='always' then no_of_people end as Always from tab)
+,tab_2 as(
+select t.obesity_level,
+coalesce(no_alcohal,(select no_alcohal from tab_1 where obesity_level= t.obesity_level and no_alcohal is not null)) as No_alcohal,
+coalesce(sometimes,(select sometimes from tab_1 where obesity_level= t.obesity_level and sometimes is not null)) as Sometimes,
+coalesce(frequently,(select frequently from tab_1 where obesity_level= t.obesity_level and frequently is not null)) as Frequently,
+coalesce(always,(select always from tab_1 where obesity_level= t.obesity_level and always is not null)) as Always
+from tab_1 t)
+select distinct* from tab_2;
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 15. fetch the obesity level who are all always in food_between_meals and heightest veg intake
+with tab as(
+select food_between_meals,Vegetables_intake_per_day,obesity_level,
+count(obesity_level) over(partition by food_between_meals,Vegetables_intake_per_day,obesity_level) as no_of_people from clean_1
+where food_between_meals='always' and 
+Vegetables_intake_per_day=(select max(Vegetables_intake_per_day) from clean_1))
+select distinct * from tab;
+-----------------------------------------------------------------------------------------------------------------------------------------------
+-- 16. fetch data that maximum physical activities hours and family_history will be yes and return their obesity level
+select Physical_activities,family_history_with_obesity,obesity_level,
+count(obesity_level) as no_of_people from clean_1
+where Physical_activities=(select max(Physical_activities) from clean_1)
+and family_history_with_obesity='yes'
+group by Physical_activities,family_history_with_obesity,obesity_level
+order by obesity_level;
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 17. what is the percentage of each obesity level by each physical_activites hours
+with tab as(
+select obesity_level,Physical_activities,count(Physical_activities) as no_of_people
+from clean_1
+group by obesity_level,Physical_activities
+order by no_of_people desc)
+select *,round((no_of_people/(select sum(no_of_people) from tab)*100),2) as percentage
+from tab;
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 18. which age category has most number of normal weight
+select age,count(obesity_level) as no_of_people from clean_1
+where obesity_level='normal_weight'
+group by age
+order by no_of_people desc;
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 19. return the alcohal conusmer and their obesity level
+select Alcohal_consume,obesity_level,count(obesity_level) as
+no_of_people from clean_1
+where Alcohal_consume !='no'
+group by Alcohal_consume,obesity_level
+order by no_of_people desc;
+------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 20. which weight has height obesity level by each age category
+select obesity_level,max(age) as maximum_age
+from clean_1
+group by obesity_level
+order by obesity_level;
+------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 21. which transportation category has number of less weight
+with tab as(
+select obesity_level,weight,count(weight) as no_of_people
+ from clean_1
+group by obesity_level,weight),
+tab_1 as(
+select *,row_number() over(partition by obesity_level order by weight) as rk
+from tab)
+select obesity_level, weight, no_of_people from tab_1
+where rk=1;
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 22. How do high-calorie food intake, vegetable intake per day, and meals per day relate to obesity levels
+select High_Calories_food_intake,Vegetables_intake_per_day,Meals_per_day,obesity_level
+,count(obesity_level) as no_of_people from clean_1
+where High_Calories_food_intake='yes'
+group by High_Calories_food_intake,Vegetables_intake_per_day,Meals_per_day,obesity_level;
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 23. Do individuals who monitor their calorie intake and engage in physical activities have lower obesity levels?
+with tab as(
+select self_calories_moniter,Physical_activities,obesity_level,
+count(obesity_level) as no_of_people
+from clean_1
+where Physical_activities=(select max(Physical_activities) from clean_1)
+and self_calories_moniter='yes'
+group by self_calories_moniter,Physical_activities,obesity_level)
+select *,round((no_of_people/(select sum(no_of_people) from tab)*100),2) as percentage
+from tab;
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 24. How does daily water intake relate to obesity levels?
+with tab as(
+select water_intake,obesity_level,count(obesity_level) as no_of_people
+from clean_1
+group by water_intake,obesity_level
+order by water_intake)
+select *,round((no_of_people/(select sum(no_of_people) from tab)*100),2) as percentage
+from tab;
+----------------------------------------------------------------------------------------------------------------------------------------------------
