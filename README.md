@@ -17,8 +17,6 @@ This repository provides a comprehensive toolkit for analyzing obesity-related d
   
 - **SQL Scripts:** Includes SQL scripts for data querying and analysis, providing transparency into the analytical process.
 
-- **Python Notebooks:** Jupyter notebooks containing Python code for data analysis.
-
 - **Dashboard:** The final dashboard showcasing summarized insights and visualizations derived from the analysis, offering an intuitive interface for exploring obesity data.
 
 ## Dashboard-1
